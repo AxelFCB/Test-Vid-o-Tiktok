@@ -1,0 +1,26 @@
+{
+  "name": "test-vid-o-tiktok",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "render": "node render.mjs",
+    "studio": "remotion studio src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:45337/git/AxelFCB/Test-Vid-o-Tiktok"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@remotion/bundler": "4.0.463",
+    "@remotion/cli": "4.0.463",
+    "@remotion/renderer": "4.0.463",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "remotion": "4.0.463"
+  }
+}
