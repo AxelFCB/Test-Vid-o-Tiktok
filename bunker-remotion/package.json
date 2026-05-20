@@ -1,0 +1,26 @@
+{
+  "name": "bunker-remotion",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/Root.tsx",
+  "scripts": {
+    "start": "remotion studio src/index.tsx",
+    "render": "remotion render src/index.tsx BunkerTransformation out/bunker_tiktok.mp4",
+    "render:preview": "remotion render src/index.tsx BunkerTransformation out/bunker_preview.mp4 --frames=0-96 --scale=0.5",
+    "still": "remotion still src/index.tsx BunkerTransformation out/still.jpg --frame=720"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@react-three/fiber": "^9.6.1",
+    "@react-three/postprocessing": "^3.0.4",
+    "@remotion/cli": "^4.0.464",
+    "@remotion/three": "^4.0.464",
+    "postprocessing": "^6.39.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "remotion": "^4.0.464",
+    "three": "^0.184.0"
+  }
+}
