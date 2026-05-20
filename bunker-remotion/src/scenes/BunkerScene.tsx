@@ -81,8 +81,7 @@ export function BunkerComposition() {
       {/* 3D Canvas */}
       <Canvas
         style={{ width: WIDTH, height: HEIGHT }}
-        gl={{ antialias: true, toneMapping: 3 /* ACESFilmic */ }}
-        shadows
+        gl={{ antialias: false, toneMapping: 3 /* ACESFilmic */, powerPreference: 'high-performance' }}
         camera={{ fov: 75, near: 0.1, far: 100 }}
       >
         <BunkerScene3D frame={frame} />
