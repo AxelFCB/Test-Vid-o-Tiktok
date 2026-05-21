@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Jumping Man & Car</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: 'Courier New', monospace; }
+    h1 { color: #e94560; font-size: 24px; margin-bottom: 10px; text-shadow: 0 0 10px #e94560; }
+    #info { color: #aaa; font-size: 13px; margin-bottom: 8px; }
+    canvas { border: 3px solid #e94560; border-radius: 4px; box-shadow: 0 0 20px #e9456055; }
+    #controls { color: #888; font-size: 12px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>🕹️ Jumping Man & Car</h1>
+  <div id="info">Approche la voiture et appuie sur <b style="color:#f5a623">E</b> pour monter/descendre</div>
+  <canvas id="canvas" width="900" height="500"></canvas>
+  <div id="controls">← → : Bouger &nbsp;|&nbsp; ↑ / Espace : Sauter &nbsp;|&nbsp; E : Entrer/Sortir voiture &nbsp;|&nbsp; Double saut activé !</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const W = canvas.width;
+const H = canvas.height;
+
+// ─── World ────────────────────────────────────────────────────────────────────
+const WORLD_W = 3000;
+const GRAVITY = 0.55;
+
+// ─── Platforms ────────────────────────────────────────────────────────────────
+const platforms = [
+  { x: 0,    y: 440, w: 600,  h: 20, color: '#2d6a4f' },
+  { x: 650,  y: 360, w: 200,  h: 20, color: '#2d6a4f' },
+  { x: 900,  y: 280, w: 180,  h: 20, color: '#2d6a4f' },
+  { x: 1100, y: 360, w: 220,  h: 20, color: '#2d6a4f' },
+  { x: 1380, y: 440, w: 800,  h: 20, color: '#2d6a4f' },
+  { x: 1500, y: 320, w: 180,  h: 20, color: '#2d6a4f' },
+  { x: 1750, y: 240, w: 200,  h: 20, color: '#2d6a4f' },
+  { x: 2050, y: 380, w: 150,  h: 20, color: '#2d6a4f' },
+  { x: 2200, y: 440, w: 800,  h: 20, color: '#2d6a4f' },
+  { x: 2300, y: 320, w: 180,  h: 20, color: '#2d6a4f' },
+  { x: 2550, y: 240, w: 220,  h: 20, color: '#2d6a4f' },
+  { x: 2850, y: 440, w: 200,  h: 20, color: '#2d6a4f' },
+];
+
+// Ground (floor)
+const ground = { x: 0, y: 460, w: WORLD_W, h: 40 };
+
+// ─── Collectibles (coins) ─────────────────────────────────────────────────────
+const coins = [
+  700, 750, 800, 950, 1000, 1120, 1170, 1520, 1600, 1770,
+  1820, 2070, 2310, 2380, 2570, 2620,
+].map((x, i) => ({
+  x, y: i % 3 === 0 ? 310 : i % 3 === 1 ? 210 : 340,
+  r: 10, collected: false, angle: 0,
+}));
+
+// ─── Car ──────────────────────────────────────────────────────────────────────
+const car = {
+  x: 200, y: 400,
+  w: 110, h: 52,
+  vx: 0, vy: 0,
+  onGround: false,
+  color: '#e94560',
+  wheelColor: '#222',
+};
+
+// ─── Player ───────────────────────────────────────────────────────────────────
+const player = {
+  x: 80, y: 380,
+  w: 28, h: 44,
+  vx: 0, vy: 0,
+  onGround: false,
+  jumpsLeft: 2,
+  inCar: false,
+  facing: 1,
+  frame: 0, frameTimer: 0,
+  color: '#f5a623',
+  shirtColor: '#e94560',
+  pantsColor: '#3a86ff',
+};
+
+// ─── Camera ───────────────────────────────────────────────────────────────────
+let camX = 0;
+let score = 0;
+let particles = [];
+
+// ─── Input ────────────────────────────────────────────────────────────────────
+const keys = {};
+document.addEventListener('keydown', e => {
+  const prev = keys[e.code];
+  keys[e.code] = true;
+
+  if (!prev) {
+    if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
+      handleJump();
+    }
+    if (e.code === 'KeyE') {
+      handleCarToggle();
+    }
+  }
+  if (['Space', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
+});
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+
+// ─── Jump handler ─────────────────────────────────────────────────────────────
+function handleJump() {
+  if (player.inCar) {
+    if (car.onGround) { car.vy = -13; car.onGround = false; }
+    return;
+  }
+  if (player.jumpsLeft > 0) {
+    player.vy = player.jumpsLeft === 2 ? -13 : -10;
+    player.onGround = false;
+    player.jumpsLeft--;
+    spawnJumpParticles();
+  }
+}
+
+// ─── Car toggle ───────────────────────────────────────────────────────────────
+function handleCarToggle() {
+  if (player.inCar) {
+    // Exit car
+    player.inCar = false;
+    player.x = car.x + car.w + 5;
+    player.y = car.y + car.h - player.h;
+    player.vx = 0;
+    player.vy = 0;
+  } else {
+    // Check proximity
+    const px = player.x + player.w / 2;
+    const py = player.y + player.h / 2;
+    const cx = car.x + car.w / 2;
+    const cy = car.y + car.h / 2;
+    if (Math.abs(px - cx) < car.w && Math.abs(py - cy) < car.h + 20) {
+      player.inCar = true;
+      car.vx = 0;
+    }
+  }
+}
+
+// ─── Particles ────────────────────────────────────────────────────────────────
+function spawnJumpParticles() {
+  for (let i = 0; i < 6; i++) {
+    particles.push({
+      x: player.x + player.w / 2,
+      y: player.y + player.h,
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * -2,
+      life: 1, size: Math.random() * 5 + 2,
+      color: Math.random() > 0.5 ? '#f5a623' : '#fff',
+    });
+  }
+}
+
+function spawnCoinParticles(x, y) {
+  for (let i = 0; i < 8; i++) {
+    const angle = (i / 8) * Math.PI * 2;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * 3,
+      vy: Math.sin(angle) * 3,
+      life: 1, size: 4,
+      color: '#ffd700',
+    });
+  }
+}
+
+// ─── Collision helpers ────────────────────────────────────────────────────────
+function collidesRect(ax, ay, aw, ah, bx, by, bw, bh) {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+function resolveVertical(entity) {
+  const allPlats = [ground, ...platforms];
+  entity.onGround = false;
+  for (const p of allPlats) {
+    if (
+      entity.x + entity.w > p.x && entity.x < p.x + p.w &&
+      entity.y + entity.h > p.y && entity.y + entity.h <= p.y + p.h + entity.vy + 1 &&
+      entity.vy >= 0
+    ) {
+      const bottom = entity.y + entity.h;
+      if (bottom <= p.y + 10) {
+        entity.y = p.y - entity.h;
+        entity.vy = 0;
+        entity.onGround = true;
+        if (entity === player) {
+          player.jumpsLeft = 2;
+        }
+      }
+    }
+    // Head bump
+    if (
+      entity.x + entity.w > p.x && entity.x < p.x + p.w &&
+      entity.y < p.y + p.h && entity.y >= p.y - 5 &&
+      entity.vy < 0
+    ) {
+      entity.y = p.y + p.h;
+      entity.vy = 0;
+    }
+  }
+}
+
+function resolveHorizontal(entity) {
+  const allPlats = [ground, ...platforms];
+  for (const p of allPlats) {
+    if (collidesRect(entity.x, entity.y + 2, entity.w, entity.h - 4, p.x, p.y, p.w, p.h)) {
+      if (entity.vx > 0) entity.x = p.x - entity.w;
+      else if (entity.vx < 0) entity.x = p.x + p.w;
+      entity.vx = 0;
+    }
+  }
+}
+
+// ─── Update ───────────────────────────────────────────────────────────────────
+function update() {
+  // ── Car physics ──
+  if (player.inCar) {
+    const accel = 0.6, maxSpeed = 9, friction = 0.82;
+    if (keys['ArrowRight'] || keys['KeyD']) { car.vx = Math.min(car.vx + accel, maxSpeed); car.facing = 1; }
+    else if (keys['ArrowLeft'] || keys['KeyA']) { car.vx = Math.max(car.vx - accel, -maxSpeed); car.facing = -1; }
+    else { car.vx *= friction; }
+
+    car.vy += GRAVITY;
+    car.x += car.vx;
+    car.y += car.vy;
+    resolveHorizontal(car);
+    resolveVertical(car);
+    car.x = Math.max(0, Math.min(WORLD_W - car.w, car.x));
+
+    // Sync player to car (hidden inside)
+    player.x = car.x + 30;
+    player.y = car.y + 6;
+
+  } else {
+    // ── Player physics ──
+    const speed = 4.5, friction = 0.8;
+    if (keys['ArrowRight'] || keys['KeyD']) { player.vx = Math.min(player.vx + 1, speed); player.facing = 1; }
+    else if (keys['ArrowLeft'] || keys['KeyA']) { player.vx = Math.max(player.vx - 1, -speed); player.facing = -1; }
+    else { player.vx *= friction; }
+
+    player.vy += GRAVITY;
+    player.x += player.vx;
+    player.y += player.vy;
+
+    resolveHorizontal(player);
+    resolveVertical(player);
+
+    // Bounds
+    player.x = Math.max(0, Math.min(WORLD_W - player.w, player.x));
+    if (player.y > H + 100) { player.y = 100; player.vy = 0; }
+
+    // Walk animation
+    if (Math.abs(player.vx) > 0.5 && player.onGround) {
+      player.frameTimer++;
+      if (player.frameTimer > 8) { player.frame = (player.frame + 1) % 4; player.frameTimer = 0; }
+    } else {
+      player.frame = 0;
+    }
+  }
+
+  // ── Car idle physics ──
+  if (!player.inCar) {
+    car.vy += GRAVITY;
+    car.y += car.vy;
+    car.vx *= 0.9;
+    car.x += car.vx;
+    resolveVertical(car);
+    car.x = Math.max(0, Math.min(WORLD_W - car.w, car.x));
+  }
+
+  // ── Camera ──
+  const target = player.inCar ? car.x + car.w / 2 : player.x + player.w / 2;
+  camX += (target - W / 2 - camX) * 0.1;
+  camX = Math.max(0, Math.min(WORLD_W - W, camX));
+
+  // ── Coins ──
+  coins.forEach(c => {
+    c.angle += 0.05;
+    if (!c.collected) {
+      const entity = player.inCar ? car : player;
+      if (collidesRect(entity.x, entity.y, entity.w, entity.h, c.x - c.r, c.y - c.r, c.r * 2, c.r * 2)) {
+        c.collected = true;
+        score += 10;
+        spawnCoinParticles(c.x, c.y);
+      }
+    }
+  });
+
+  // ── Particles ──
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.life -= 0.04;
+  });
+}
+
+// ─── Drawing helpers ─────────────────────────────────────────────────────────
+function drawBackground() {
+  // Sky gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, '#0f3460');
+  grad.addColorStop(1, '#16213e');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  const starSeed = 42;
+  for (let i = 0; i < 80; i++) {
+    const sx = ((starSeed * (i + 1) * 1234567) % WORLD_W - camX + WORLD_W) % W;
+    const sy = ((i * 9876543) % 350);
+    const size = (i % 3 === 0) ? 2 : 1;
+    ctx.fillRect(sx, sy, size, size);
+  }
+
+  // Parallax mountains
+  ctx.fillStyle = '#1a3a5c';
+  for (let i = 0; i < 12; i++) {
+    const mx = (i * 280 - camX * 0.3 + WORLD_W) % (W + 280) - 140;
+    const mh = 80 + (i % 3) * 40;
+    ctx.beginPath();
+    ctx.moveTo(mx - 120, H); ctx.lineTo(mx, H - mh); ctx.lineTo(mx + 120, H); ctx.closePath();
+    ctx.fill();
+  }
+  ctx.fillStyle = '#162c45';
+  for (let i = 0; i < 8; i++) {
+    const mx = (i * 380 + 100 - camX * 0.5 + WORLD_W * 2) % (W + 380) - 190;
+    const mh = 100 + (i % 4) * 30;
+    ctx.beginPath();
+    ctx.moveTo(mx - 150, H); ctx.lineTo(mx, H - mh); ctx.lineTo(mx + 150, H); ctx.closePath();
+    ctx.fill();
+  }
+}
+
+function drawGround() {
+  const gx = ground.x - camX;
+  ctx.fillStyle = '#1b4332';
+  ctx.fillRect(gx, ground.y, ground.w, ground.h);
+  ctx.fillStyle = '#2d6a4f';
+  ctx.fillRect(gx, ground.y, ground.w, 8);
+}
+
+function drawPlatforms() {
+  platforms.forEach(p => {
+    const px = p.x - camX;
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillRect(px + 4, p.y + 4, p.w, p.h);
+    // Body
+    ctx.fillStyle = p.color;
+    ctx.fillRect(px, p.y, p.w, p.h);
+    // Top highlight
+    ctx.fillStyle = '#40916c';
+    ctx.fillRect(px, p.y, p.w, 5);
+    // Brick pattern
+    ctx.fillStyle = '#1b4332';
+    for (let bx = 0; bx < p.w; bx += 40) {
+      ctx.fillRect(px + bx, p.y + 6, 1, 14);
+    }
+  });
+}
+
+function drawCoin(c) {
+  if (c.collected) return;
+  const cx = c.x - camX;
+  const scaleX = Math.cos(c.angle);
+
+  ctx.save();
+  ctx.translate(cx, c.y);
+  ctx.scale(Math.abs(scaleX) < 0.1 ? 0.1 : scaleX, 1);
+
+  // Coin glow
+  ctx.shadowColor = '#ffd700';
+  ctx.shadowBlur = 10;
+
+  // Coin body
+  ctx.fillStyle = '#ffd700';
+  ctx.beginPath();
+  ctx.arc(0, 0, c.r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Inner detail
+  ctx.fillStyle = '#ffaa00';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('$', 0, 0);
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+function drawCar() {
+  const cx = car.x - camX;
+  const cy = car.y;
+
+  ctx.save();
+  ctx.translate(cx + car.w / 2, cy + car.h / 2);
+  if (car.vx < -0.5) ctx.scale(-1, 1);
+
+  const hw = car.w / 2, hh = car.h / 2;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(0, hh + 8, hw * 0.9, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Car body (lower)
+  ctx.fillStyle = car.color;
+  ctx.beginPath();
+  ctx.roundRect(-hw, -hh + 18, car.w, car.h - 18, 6);
+  ctx.fill();
+
+  // Car cabin
+  ctx.fillStyle = '#c73652';
+  ctx.beginPath();
+  ctx.roundRect(-hw + 14, -hh, car.w - 30, car.h - 22, 8);
+  ctx.fill();
+
+  // Windows
+  ctx.fillStyle = '#a8d8ea';
+  ctx.globalAlpha = 0.85;
+  // Front window
+  ctx.beginPath(); ctx.roundRect(-hw + 40, -hh + 4, 24, 18, 3); ctx.fill();
+  // Rear window
+  ctx.beginPath(); ctx.roundRect(-hw + 16, -hh + 4, 20, 18, 3); ctx.fill();
+  ctx.globalAlpha = 1;
+
+  // Headlight
+  ctx.fillStyle = '#ffe066';
+  ctx.beginPath(); ctx.ellipse(hw - 4, -hh + 26, 5, 4, 0, 0, Math.PI * 2); ctx.fill();
+  // Taillight
+  ctx.fillStyle = '#ff4444';
+  ctx.beginPath(); ctx.ellipse(-hw + 4, -hh + 26, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Wheels
+  const wheelR = 12;
+  [[hw - 20, hh - 2], [-hw + 20, hh - 2]].forEach(([wx, wy]) => {
+    // Tire
+    ctx.fillStyle = '#222';
+    ctx.beginPath(); ctx.arc(wx, wy, wheelR, 0, Math.PI * 2); ctx.fill();
+    // Rim
+    ctx.fillStyle = '#888';
+    ctx.beginPath(); ctx.arc(wx, wy, wheelR - 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#aaa';
+    ctx.beginPath(); ctx.arc(wx, wy, 3, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // "E" hint bubble if player nearby and not in car
+  if (!player.inCar) {
+    const px = player.x + player.w / 2;
+    const carCX = car.x + car.w / 2;
+    if (Math.abs(px - carCX) < car.w + 10) {
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.beginPath(); ctx.roundRect(-20, -hh - 28, 40, 22, 4); ctx.fill();
+      ctx.fillStyle = '#333';
+      ctx.font = 'bold 13px Courier New';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('[ E ]', 0, -hh - 17);
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawPlayer() {
+  if (player.inCar) return;
+
+  const px = player.x - camX;
+  const py = player.y;
+
+  ctx.save();
+  ctx.translate(px + player.w / 2, py);
+
+  if (player.facing < 0) ctx.scale(-1, 1);
+
+  // Leg animation
+  const legSwing = player.onGround && Math.abs(player.vx) > 0.5
+    ? Math.sin(player.frame * Math.PI / 2) * 6 : 0;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath();
+  ctx.ellipse(0, player.h, 10, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Legs
+  ctx.fillStyle = player.pantsColor;
+  ctx.fillRect(-9, player.h - 16 + legSwing, 8, 16);
+  ctx.fillRect(1, player.h - 16 - legSwing, 8, 16);
+
+  // Shoes
+  ctx.fillStyle = '#222';
+  ctx.fillRect(-11, player.h - 2 + legSwing, 11, 5);
+  ctx.fillRect(-1, player.h - 2 - legSwing, 11, 5);
+
+  // Body / shirt
+  ctx.fillStyle = player.shirtColor;
+  ctx.beginPath();
+  ctx.roundRect(-10, player.h - 28, 20, 16, 3);
+  ctx.fill();
+
+  // Overall straps
+  ctx.fillStyle = '#2563eb';
+  ctx.fillRect(-7, player.h - 32, 5, 6);
+  ctx.fillRect(2, player.h - 32, 5, 6);
+
+  // Arm (swings opposite to legs)
+  const armSwing = player.onGround ? -legSwing : 0;
+  ctx.fillStyle = player.color;
+  ctx.fillRect(10, player.h - 26 + armSwing, 6, 12);
+  ctx.fillRect(-16, player.h - 26 - armSwing, 6, 12);
+
+  // Head
+  ctx.fillStyle = player.color;
+  ctx.beginPath();
+  ctx.roundRect(-10, player.h - 44, 20, 20, 6);
+  ctx.fill();
+
+  // Hat
+  ctx.fillStyle = '#e94560';
+  ctx.fillRect(-11, player.h - 44, 22, 5);
+  ctx.fillRect(-7, player.h - 52, 14, 9);
+
+  // Eyes
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(1, player.h - 39, 7, 6);
+  ctx.fillStyle = '#222';
+  ctx.fillRect(3, player.h - 38, 3, 4);
+  // Shine
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(4, player.h - 37, 1, 1);
+
+  // Mustache
+  ctx.fillStyle = '#5c3317';
+  ctx.beginPath();
+  ctx.ellipse(3, player.h - 30, 7, 3, 0, 0, Math.PI);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x - camX, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+
+function drawHUD() {
+  // Score
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath(); ctx.roundRect(10, 10, 140, 36, 6); ctx.fill();
+  ctx.fillStyle = '#ffd700';
+  ctx.font = 'bold 14px Courier New';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`$ SCORE: ${score}`, 20, 28);
+
+  // Double jump indicator
+  if (!player.inCar) {
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.beginPath(); ctx.roundRect(W - 130, 10, 120, 36, 6); ctx.fill();
+    ctx.fillStyle = player.jumpsLeft > 0 ? '#3a86ff' : '#555';
+    ctx.font = '12px Courier New';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`SAUTS: ${'●'.repeat(player.jumpsLeft)}${'○'.repeat(2 - player.jumpsLeft)}`, W - 70, 28);
+  }
+
+  // Car mode indicator
+  if (player.inCar) {
+    ctx.fillStyle = 'rgba(233,69,96,0.85)';
+    ctx.beginPath(); ctx.roundRect(W / 2 - 70, 10, 140, 36, 6); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 14px Courier New';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🚗 MODE VOITURE', W / 2, 28);
+  }
+}
+
+// ─── Main loop ────────────────────────────────────────────────────────────────
+function loop() {
+  ctx.clearRect(0, 0, W, H);
+  update();
+  drawBackground();
+  drawGround();
+  drawPlatforms();
+  coins.forEach(drawCoin);
+  drawParticles();
+  drawCar();
+  drawPlayer();
+  drawHUD();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
