@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FM Logistic – Flux logistiques mutualisés</title>
+<style>
+  body { margin: 0; padding: 16px; background: #fff; font-family: Arial, sans-serif; }
+  svg { display: block; margin: auto; max-width: 100%; }
+  @media print {
+    @page { size: A4 landscape; margin: 8mm; }
+    body { padding: 0; }
+    svg { width: 100%; height: auto; }
+  }
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 770" width="1060" height="770">
+<defs>
+  <!-- Arrowhead vert (flux physique) -->
+  <marker id="ag" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0,10 3.5,0 7" fill="#2e7d32"/>
+  </marker>
+  <!-- Arrowhead orange (flux info) -->
+  <marker id="ao" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+    <polygon points="0 0,10 3.5,0 7" fill="#e65100"/>
+  </marker>
+  <!-- Filtre ombre légère -->
+  <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+    <feDropShadow dx="1" dy="1" stdDeviation="2" flood-color="#00000022"/>
+  </filter>
+</defs>
+
+<!-- ─── Fond ─── -->
+<rect width="1060" height="770" fill="white"/>
+
+<!-- ═══════════════════════════════════════════════
+     TITRE
+═══════════════════════════════════════════════ -->
+<text x="530" y="28" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#1a237e">
+  Organisation des flux – FM Logistic / Mutualisation drives urbains
+</text>
+<line x1="60" y1="36" x2="1000" y2="36" stroke="#1a237e" stroke-width="1.2"/>
+
+<!-- ═══════════════════════════════════════════════
+     1. FOURNISSEURS / CENTRALE D'ACHAT  (y=50)
+═══════════════════════════════════════════════ -->
+<rect x="345" y="50" width="320" height="52" rx="10" fill="#f5f5f5" stroke="#757575" stroke-width="2" filter="url(#shadow)"/>
+<text x="505" y="71" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#212121">Fournisseurs / Centrale d'achat</text>
+<text x="505" y="90" text-anchor="middle" font-family="Arial" font-size="11" fill="#616161">Référencement &amp; approvisionnement des marchandises</text>
+
+<!-- ═══════════════════════════════════════════════
+     2. ENTREPÔT FM LOGISTIC  (y=148 → 333)
+═══════════════════════════════════════════════ -->
+<rect x="175" y="145" width="652" height="188" rx="10" fill="#eceff1" stroke="#455a64" stroke-width="2.5" filter="url(#shadow)"/>
+<text x="501" y="163" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#1a237e">Entrepôt FM Logistic – Ivry-sur-Seine</text>
+
+<!-- Zone 1 : Réception -->
+<rect x="188" y="172" width="146" height="150" rx="6" fill="#e3f2fd" stroke="#1565c0" stroke-width="1.5"/>
+<text x="261" y="191" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">Réception</text>
+<text x="261" y="206" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#0d47a1">Mise en stock</text>
+<text x="261" y="222" text-anchor="middle" font-family="Arial" font-size="10" fill="#1565c0">via WMS</text>
+<text x="261" y="241" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Stockage &lt; 12 h</text>
+<text x="261" y="257" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Contrôle qualité</text>
+<text x="261" y="273" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Traçabilité produits</text>
+<text x="261" y="289" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Palettes / vrac</text>
+<text x="261" y="307" text-anchor="middle" font-family="Arial" font-size="9" fill="#78909c">3 temp. gérées</text>
+
+<!-- Zone 2 : Picking -->
+<rect x="342" y="172" width="146" height="150" rx="6" fill="#e8f5e9" stroke="#2e7d32" stroke-width="1.5"/>
+<text x="415" y="191" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#1b5e20">Picking</text>
+<text x="415" y="208" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">350 commandes / jour</text>
+<line x1="355" y1="213" x2="475" y2="213" stroke="#a5d6a7" stroke-width="1"/>
+<text x="415" y="229" text-anchor="middle" font-family="Arial" font-size="10" fill="#2e7d32">● Ambiant : 58 %</text>
+<text x="415" y="246" text-anchor="middle" font-family="Arial" font-size="10" fill="#2e7d32">● Frais : 38 %</text>
+<text x="415" y="263" text-anchor="middle" font-family="Arial" font-size="10" fill="#2e7d32">● Surgelé : 4 %</text>
+<text x="415" y="281" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Préparation colis</text>
+<text x="415" y="297" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">par tournée</text>
+<text x="415" y="314" text-anchor="middle" font-family="Arial" font-size="9" fill="#78909c">Scan + contrôle</text>
+
+<!-- Zone 3 : Chargement -->
+<rect x="496" y="172" width="146" height="150" rx="6" fill="#fff3e0" stroke="#e65100" stroke-width="1.5"/>
+<text x="569" y="191" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#bf360c">Chargement</text>
+<text x="569" y="208" text-anchor="middle" font-family="Arial" font-size="10" fill="#e65100">24 tournées / jour</text>
+<line x1="509" y1="213" x2="629" y2="213" stroke="#ffcc80" stroke-width="1"/>
+<text x="569" y="229" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">VL / PL frigo</text>
+<text x="569" y="246" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Camions 20 m³</text>
+<text x="569" y="263" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Sous-traitants</text>
+<text x="569" y="280" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">transport</text>
+<text x="569" y="298" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Chaîne du froid</text>
+<text x="569" y="314" text-anchor="middle" font-family="Arial" font-size="9" fill="#78909c">Gerbeurs / quais</text>
+
+<!-- Zone 4 : Reporting KPI -->
+<rect x="650" y="172" width="150" height="150" rx="6" fill="#f3e5f5" stroke="#6a1b9a" stroke-width="1.5"/>
+<text x="725" y="191" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold" fill="#4a148c">Reporting KPI</text>
+<text x="725" y="208" text-anchor="middle" font-family="Arial" font-size="10" fill="#6a1b9a">WMS → Copils</text>
+<line x1="663" y1="213" x2="787" y2="213" stroke="#ce93d8" stroke-width="1"/>
+<text x="725" y="229" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Taux de service</text>
+<text x="725" y="246" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Productivité</text>
+<text x="725" y="263" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Délais livraison</text>
+<text x="725" y="280" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Suivi anomalies</text>
+<text x="725" y="298" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Taux de rupture</text>
+<text x="725" y="314" text-anchor="middle" font-family="Arial" font-size="9" fill="#78909c">Tableaux de bord</text>
+
+<!-- ═══════════════════════════════════════════════
+     3. 27 DRIVES  (y=385)
+═══════════════════════════════════════════════ -->
+<rect x="345" y="383" width="320" height="58" rx="10" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2" filter="url(#shadow)"/>
+<text x="505" y="406" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#1b5e20">27 Drives – Paris et Île-de-France</text>
+<text x="505" y="425" text-anchor="middle" font-family="Arial" font-size="11" fill="#388e3c">Réception &amp; mise à disposition des commandes préparées</text>
+
+<!-- ═══════════════════════════════════════════════
+     4. CLIENT FINAL  (y=495)
+═══════════════════════════════════════════════ -->
+<rect x="345" y="493" width="320" height="52" rx="10" fill="#fffde7" stroke="#f9a825" stroke-width="2" filter="url(#shadow)"/>
+<text x="505" y="515" text-anchor="middle" font-family="Arial" font-size="13" font-weight="bold" fill="#e65100">Client Final</text>
+<text x="505" y="533" text-anchor="middle" font-family="Arial" font-size="11" fill="#616161">Retrait drive – courses préparées</text>
+
+<!-- ═══════════════════════════════════════════════
+     5. PLATEFORME CMS/CRM  (droite, y=420)
+═══════════════════════════════════════════════ -->
+<rect x="810" y="415" width="215" height="78" rx="10" fill="#e1f5fe" stroke="#0277bd" stroke-width="2" filter="url(#shadow)"/>
+<text x="917" y="437" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#01579b">Plateforme Internet</text>
+<text x="917" y="454" text-anchor="middle" font-family="Arial" font-size="11" fill="#0277bd">CMS / CRM</text>
+<text x="917" y="470" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Site web distributeur</text>
+<text x="917" y="484" text-anchor="middle" font-family="Arial" font-size="9" fill="#78909c">Catalogue / commandes en ligne</text>
+
+<!-- ═══════════════════════════════════════════════
+     6. DISTRIBUTEUR  (gauche, transversal, y=198)
+═══════════════════════════════════════════════ -->
+<rect x="15" y="198" width="135" height="96" rx="10" fill="#fff8e1" stroke="#ff8f00" stroke-width="2" filter="url(#shadow)"/>
+<text x="82" y="220" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#e65100">Distributeur</text>
+<text x="82" y="238" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Pilotage stratégique</text>
+<text x="82" y="254" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">Politique prix /</text>
+<text x="82" y="269" text-anchor="middle" font-family="Arial" font-size="10" fill="#424242">assortiment</text>
+<text x="82" y="285" text-anchor="middle" font-family="Arial" font-size="9" fill="#78909c">Copils &amp; KPI</text>
+
+<!-- ═══════════════════════════════════════════════
+     FLUX PHYSIQUES  (vert, trait plein)
+═══════════════════════════════════════════════ -->
+
+<!-- F1 : Fournisseurs → Entrepôt -->
+<line x1="505" y1="102" x2="505" y2="143" stroke="#2e7d32" stroke-width="2.5" marker-end="url(#ag)"/>
+<rect x="510" y="110" width="168" height="16" rx="3" fill="white" fill-opacity="0.85"/>
+<text x="514" y="122" font-family="Arial" font-size="10" fill="#2e7d32">Réassort des marchandises</text>
+
+<!-- F2 : Entrepôt → 27 Drives -->
+<line x1="505" y1="333" x2="505" y2="381" stroke="#2e7d32" stroke-width="2.5" marker-end="url(#ag)"/>
+<rect x="510" y="345" width="190" height="16" rx="3" fill="white" fill-opacity="0.85"/>
+<text x="514" y="357" font-family="Arial" font-size="10" fill="#2e7d32">Livraison camions frigo (24 tournées/j)</text>
+
+<!-- F3 : 27 Drives → Client Final -->
+<line x1="505" y1="441" x2="505" y2="491" stroke="#2e7d32" stroke-width="2.5" marker-end="url(#ag)"/>
+<rect x="510" y="453" width="148" height="16" rx="3" fill="white" fill-opacity="0.85"/>
+<text x="514" y="465" font-family="Arial" font-size="10" fill="#2e7d32">Remise des courses</text>
+
+<!-- ═══════════════════════════════════════════════
+     FLUX D'INFORMATION  (orange, pointillés)
+═══════════════════════════════════════════════ -->
+
+<!-- I1 : Client → Plateforme CMS/CRM -->
+<path d="M 665 519 Q 740 519 810 470" fill="none" stroke="#e65100" stroke-width="2" stroke-dasharray="7,4" marker-end="url(#ao)"/>
+<rect x="690" y="508" width="115" height="16" rx="3" fill="white" fill-opacity="0.9"/>
+<text x="748" y="520" text-anchor="middle" font-family="Arial" font-size="10" fill="#e65100">Commande client</text>
+
+<!-- I2 : Plateforme CMS/CRM → Entrepôt WMS (Zone Reporting) -->
+<path d="M 917 415 L 917 252 L 802 252" fill="none" stroke="#e65100" stroke-width="2" stroke-dasharray="7,4" marker-end="url(#ao)"/>
+<rect x="860" y="322" width="130" height="28" rx="3" fill="white" fill-opacity="0.9"/>
+<text x="925" y="334" text-anchor="middle" font-family="Arial" font-size="10" fill="#e65100">Commandes</text>
+<text x="925" y="347" text-anchor="middle" font-family="Arial" font-size="10" fill="#e65100">à préparer</text>
+
+<!-- I3 : Distributeur → Entrepôt (décisions appro.) -->
+<path d="M 150 255 L 173 240" fill="none" stroke="#e65100" stroke-width="2" stroke-dasharray="7,4" marker-end="url(#ao)"/>
+<rect x="10" y="300" width="148" height="28" rx="3" fill="white" fill-opacity="0.9"/>
+<text x="84" y="312" text-anchor="middle" font-family="Arial" font-size="10" fill="#e65100">Décisions</text>
+<text x="84" y="325" text-anchor="middle" font-family="Arial" font-size="10" fill="#e65100">d'approvisionnement</text>
+
+<!-- I4 : Entrepôt (Zone KPI) → Distributeur (KPI / Copils) — passe au-dessus -->
+<path d="M 725 172 L 725 132 L 82 132 L 82 197" fill="none" stroke="#e65100" stroke-width="2" stroke-dasharray="7,4" marker-end="url(#ao)"/>
+<rect x="326" y="120" width="102" height="16" rx="3" fill="white" fill-opacity="0.9"/>
+<text x="377" y="132" text-anchor="middle" font-family="Arial" font-size="10" fill="#e65100">KPI / Copils</text>
+
+<!-- ═══════════════════════════════════════════════
+     LÉGENDE  (y=610)
+═══════════════════════════════════════════════ -->
+<rect x="30" y="600" width="670" height="72" rx="8" fill="#fafafa" stroke="#bdbdbd" stroke-width="1.5"/>
+<text x="46" y="618" font-family="Arial" font-size="12" font-weight="bold" fill="#212121">Légende</text>
+
+<!-- Ligne verte -->
+<line x1="50" y1="635" x2="115" y2="635" stroke="#2e7d32" stroke-width="2.5" marker-end="url(#ag)"/>
+<text x="123" y="639" font-family="Arial" font-size="11" fill="#212121">Flux physique (marchandises)</text>
+
+<!-- Ligne orange pointillée -->
+<line x1="50" y1="657" x2="115" y2="657" stroke="#e65100" stroke-width="2" stroke-dasharray="7,4" marker-end="url(#ao)"/>
+<text x="123" y="661" font-family="Arial" font-size="11" fill="#212121">Flux d'information (données, commandes, KPI)</text>
+
+<!-- Définitions -->
+<text x="340" y="621" font-family="Arial" font-size="10" fill="#616161">WMS = Warehouse Management System</text>
+<text x="340" y="638" font-family="Arial" font-size="10" fill="#616161">CMS = Content Management System</text>
+<text x="340" y="655" font-family="Arial" font-size="10" fill="#616161">CRM = Customer Relationship Management</text>
+<text x="340" y="664" font-family="Arial" font-size="10" fill="#616161">VL = Véhicule Léger · PL = Poids Lourd</text>
+
+<!-- ═══════════════════════════════════════════════
+     SOURCE
+═══════════════════════════════════════════════ -->
+<text x="1030" y="758" text-anchor="end" font-family="Arial" font-size="9.5" fill="#9e9e9e">Source : cas FM Logistic, Capoa &amp; Michon</text>
+
+</svg>
+</body>
+</html>
