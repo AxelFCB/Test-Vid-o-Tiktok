@@ -1,0 +1,9 @@
+output/
+*.pyc
+__pycache__/
+*.egg-info/
+.venv/
+venv/
+.env
+*.wav
+*.tmp

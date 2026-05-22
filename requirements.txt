@@ -1,0 +1,14 @@
+# Core video editing
+moviepy>=1.0.3
+
+# Whisper for auto-subtitles
+openai-whisper>=20231117
+
+# ffmpeg-python (optional, used as fallback helper)
+ffmpeg-python>=0.2.0
+
+# Progress and CLI
+tqdm>=4.65.0
+
+# NumPy (required by whisper and moviepy)
+numpy>=1.24.0
